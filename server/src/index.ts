@@ -6,6 +6,18 @@ var cors = require("cors");
 const repository = new Repository();
 const bodyParser = require("body-parser");
 
+function ordenarCasos(casos){
+  let casosOrdenados = []
+  casos.forEach(element => {
+    if(element.id > 10){
+      casosOrdenados.push(element)
+    }
+  });
+  console.log(casosOrdenados)
+
+  return casosOrdenados
+}
+
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cors());
 app.use(bodyParser.json());
@@ -50,6 +62,17 @@ app.post('/create-user', async (req, res) => {
     try {
         const casos = await repository.getAllCasos(req.params.user_email);
         res.send({ status: true, casos })
+    } catch (error) {
+        console.log(error);
+        res.send({ status: false, error});
+    }
+  })
+
+  app.get('/ordenar-casos/:user_email', async (req, res) => {
+    try {
+        let casos = await repository.getAllCasos(req.params.user_email);
+        let casosOrdenados = ordenarCasos(casos);
+        res.send({ status: true, casos: casosOrdenados })
     } catch (error) {
         console.log(error);
         res.send({ status: false, error});

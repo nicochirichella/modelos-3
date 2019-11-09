@@ -30,6 +30,10 @@ import {
 class NavBar extends Component {
     constructor(props) {
         super(props);
+        
+        this.state = {
+            email: localStorage.getItem('email')
+        }
     }
     render() {
         return (
@@ -44,7 +48,7 @@ class NavBar extends Component {
                     </NavbarBrand>
                     <NavbarNav alignItems="right">
                         <NavbarLink href="/login">
-                            { this.props.email ? this.props.email + " " : "" }
+                            { this.state.email  ? this.state.email + " " : "" }
                             <Icon icon="fa fa-user-circle" />
                         </NavbarLink>
                         <NavbarLink href="/">

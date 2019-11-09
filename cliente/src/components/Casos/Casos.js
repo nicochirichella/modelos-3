@@ -1,6 +1,8 @@
 import React, { Component } from 'react';
 import NavBar from '../NavBar/NavBar';
 import HoverStripedTable from '../Table';
+import { Button, Modal, Col } from 'react-bootstrap'
+
 
 import {
     Row,
@@ -14,8 +16,8 @@ class Casos extends Component {
         super(props);
 
         this.state = {
-            email: this.props.email ? this.props.email : "",
             dataSet: false,
+            showModal: false,
             data: []
         };
     }
@@ -26,19 +28,40 @@ class Casos extends Component {
 
     getCasos = () => {
         console.log('Entre a hacer get casos')
-        console.log(this.props.email)
-        return fetch(`http://localhost:4000/casos/`+localStorage.getItem('email'))
+        return fetch(`http://localhost:4000/casos/` + localStorage.getItem('email'))
             .then(res => res.text())
             .then(res => JSON.parse(res).casos)
-            .then(res => this.setState({ data: res,
-                        dataSet:true }))
+            .then(res => this.setState({
+                data: res,
+                dataSet: true
+            }))
             .catch((error) => {
                 console.log('fail to conect');
             });
     }
 
+    ordenarCasos = () => {
+        console.log('entre a ordenar casos')
+        return fetch(`http://localhost:4000/ordenar-casos/` + localStorage.getItem('email'))
+            .then(res => res.text())
+            .then(res => JSON.parse(res).casos)
+            .then(res => this.setState({
+                data: res,
+            }))
+            .catch((error) => {
+                console.log('fail to conect');
+            });
+    }
+
+    showModal = (show) => {
+        console.log(show)
+        this.setState({
+            showModal: show
+        });
+    }
+
     render() {
-        if(!this.state.dataSet) {
+        if (!this.state.dataSet) {
             this.getCasos();
         }
         return (
@@ -46,7 +69,7 @@ class Casos extends Component {
 
                 <Row className="mt-5">
                     <Column>
-                        <NavBar email={localStorage.getItem('email')} />
+                        <NavBar />
                     </Column>
                 </Row>
                 <Row className="mt-5">
@@ -57,11 +80,42 @@ class Casos extends Component {
                     </Column>
                 </Row>
                 <Row>
-                    <HoverStripedTable data={this.state.data}>
-
-                    </HoverStripedTable>
+                    <Col md={8} xs={4}>
+                        <Button className="btn btn-primary" onClick={() => this.showModal(true)} >
+                            <i class="fa fa-plus" aria-hidden="true"></i>
+                        </Button>
+                    </Col>
+                    <Col md={2} xs={12} className='allign-right'>
+                        <Button className="btn btn-primary" onClick={this.getCasos} >
+                            Todos los casos
+                        </Button>
+                    </Col>
+                    <Col md={2} xs={12} className='allign-right'>
+                        <Button className="btn btn-primary" onClick={this.ordenarCasos} >
+                            Ordenar
+                        </Button>
+                    </Col>
+                </Row>
+                <br />
+                <Row>
+                    <Column>
+                        <HoverStripedTable data={this.state.data} />
+                    </Column>
                 </Row>
 
+                <Modal show={this.state.showModal} onHide={() => this.showModal(false)} animation={false}>
+                    <Modal.Header closeButton>
+                    </Modal.Header>
+                    <Modal.Body>Woohoo, you're reading this text in a modal!</Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="secondary" onClick={() => this.showModal(false)}>
+                            Close
+                        </Button>
+                        <Button variant="primary" onClick={() => this.showModal(false)}>
+                            Save Changes
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
 
             </Container>
         );
