@@ -1,4 +1,5 @@
 import { User } from '../types/user';
+import { Authenticate } from '../types/authenticate';
 import { knex } from '../knex';
 
 export default class Repository {
@@ -52,6 +53,37 @@ export default class Repository {
             `, [userId])
             .tap(console.log)
             .then(r => r.rows);
+    }
+
+    public authenticate = (authenticate: Authenticate): Promise<any> => {
+        let { email , password } = authenticate;
+        return knex.raw(`
+            SELECT count(*) as found
+            FROM users where email = ?
+            and password = ?;
+        `, [email, password])
+        .then((resp) => {
+            return resp.rows[0].found === '1';
+        })
+        .catch((e) => {
+            console.log(e);
+            return false;
+        });
+    }
+
+    public getAllCasos = (email: string): Promise<any> => {
+        return knex.raw(`
+            SELECT id, cliente, vencimiento, ultimo_movimiento, responsable, ganancia
+            FROM casos where user_email = ?
+        `,[email]
+        )
+        .then((resp) => {
+            return resp.rows
+        })
+        .catch((e) => {
+            console.log(e);
+            return false;
+        });
     }
 
 }

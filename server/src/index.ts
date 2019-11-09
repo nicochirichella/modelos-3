@@ -2,10 +2,12 @@ import Repository from './repository';
 
 var express = require('express');
 var app = express();
+var cors = require("cors");
 const repository = new Repository();
 const bodyParser = require("body-parser");
 
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(cors());
 app.use(bodyParser.json());
 // on the request to root (localhost:4000/)
 app.get('/', function (req, res) {
@@ -14,7 +16,7 @@ app.get('/', function (req, res) {
 
 app.post('/create-user', async (req, res) => {
     try {
-      console.log(req.body);
+      console.log(req);
       await repository.createUserIfNotExists(req.body);
       const userInformation = await repository.getUserInformation(req.body.id);
       res.send({ status: true, userInformation });
@@ -28,6 +30,26 @@ app.post('/create-user', async (req, res) => {
     try {
         const user = await repository.getUser(1);
         res.send({ status: true, user })
+    } catch (error) {
+        console.log(error);
+        res.send({ status: false, error});
+    }
+  })
+
+  app.post('/users/authenticate', async (req, res) => {
+    try {
+      const validUser = await repository.authenticate(req.body)
+      res.send({status: true, validUser, email:req.body.email})
+    } catch (error) {
+      console.log(error);
+      res.send( {status:false, error})
+    }
+  })
+
+  app.get('/casos/:user_email', async (req, res) => {
+    try {
+        const casos = await repository.getAllCasos(req.params.user_email);
+        res.send({ status: true, casos })
     } catch (error) {
         console.log(error);
         res.send({ status: false, error});
