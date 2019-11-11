@@ -74,7 +74,27 @@ export default class Repository {
     public getAllCasos = (email: string): Promise<any> => {
         return knex.raw(`
             SELECT id, cliente, vencimiento, ultimo_movimiento, responsable, ganancia
-            FROM casos where user_email = ?
+            FROM casos 
+            where user_email = ?
+            order by id
+        `,[email]
+        )
+        .then((resp) => {
+            return resp.rows
+        })
+        .catch((e) => {
+            console.log(e);
+            return false;
+        });
+    }
+
+    public getCasosToOrder = (email: string): Promise<any> => {
+        return knex.raw(`
+            SELECT id, cliente, vencimiento, ultimo_movimiento, responsable, ganancia, valoracion
+            FROM casos 
+            where user_email = ?
+                and responsable != 'cliente'
+            order by id 
         `,[email]
         )
         .then((resp) => {
