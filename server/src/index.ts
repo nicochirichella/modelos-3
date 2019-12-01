@@ -6,7 +6,7 @@ var cors = require("cors");
 const repository = new Repository();
 const bodyParser = require("body-parser");
 
-function ordenarCasos(casos) {
+function ordenarCasos(casos, modo_original) {
   let casosOrdenados = []
   let datosIniciales = procesamientoInicial(casos)
   let totales = datosIniciales[0]
@@ -17,13 +17,15 @@ function ordenarCasos(casos) {
   casos.forEach(caso => {
 
     if (casosFijos.indexOf(caso) === -1) {
-
-      if (casosOrdenados.length < (10 - casosFijos.length)){
+      if (modo_original) {
         valor = valorCaso(caso, totales)
+      } else {
+        valor = valorCaso2(caso, totales)
+      }
+      if (casosOrdenados.length < (10 - casosFijos.length)) {
         casosOrdenados.push([caso, valor])
         minimoYPosicion = getMinimoYPosicion(casosOrdenados)
       } else {
-        valor = valorCaso(caso, totales)
         if (valor > minimoYPosicion[0]) {
           casosOrdenados[minimoYPosicion[1]] = [caso, valor]
           minimoYPosicion = getMinimoYPosicion(casosOrdenados)
@@ -32,7 +34,7 @@ function ordenarCasos(casos) {
     }
   });
 
-  let casosATrabajar  = casosOrdenados.map(function(caso) {
+  let casosATrabajar = casosOrdenados.map(function (caso) {
     return caso[0];
   });
 
@@ -41,7 +43,7 @@ function ordenarCasos(casos) {
   return casosATrabajar
 }
 
-function getMinimoYPosicion(casosYValores){
+function getMinimoYPosicion(casosYValores) {
   let minimo = casosYValores[0][1];
   let posicion = 0;
   casosYValores.forEach(element => {
@@ -51,7 +53,7 @@ function getMinimoYPosicion(casosYValores){
     }
   });
 
-  return [minimo,posicion]
+  return [minimo, posicion]
 }
 
 function procesamientoInicial(casos) {
@@ -82,6 +84,20 @@ function valorCaso(caso, totales) {
     valoracion: 0.13,
     ultimo_movimiento: 0.59,
     ganancia: 0.28
+  }
+
+  let diasDesdeUltimoMovimiento = ((Date.now() - caso.ultimo_movimiento) / diaEnMilisegundos)
+  return (caso.ganancia / totales.ganancia) * ponderacion.ganancia
+    + (caso.valoracion / totales.valoracion) * ponderacion.valoracion
+    + (diasDesdeUltimoMovimiento / totales.ultimo_movimiento) * ponderacion.ultimo_movimiento
+}
+
+function valorCaso2(caso, totales) {
+  let diaEnMilisegundos = 1000 * 60 * 60 * 24
+  let ponderacion = {
+    valoracion: 0.13,
+    ultimo_movimiento: 0.28,
+    ganancia: 0.59
   }
 
   let diasDesdeUltimoMovimiento = ((Date.now() - caso.ultimo_movimiento) / diaEnMilisegundos)
@@ -143,8 +159,44 @@ app.get('/casos/:user_email', async (req, res) => {
 app.get('/ordenar-casos/:user_email', async (req, res) => {
   try {
     let casos = await repository.getCasosToOrder(req.params.user_email);
-    let casosOrdenados = ordenarCasos(casos);
+    let casosOrdenados = ordenarCasos(casos, true);
+    await repository.guardarSolucion(casosOrdenados, req.params.user_email);
     res.send({ status: true, casos: casosOrdenados })
+  } catch (error) {
+    console.log(error);
+    res.send({ status: false, error });
+  }
+})
+
+app.get('/ordenar-casos2/:user_email', async (req, res) => {
+  try {
+    let casos = await repository.getCasosToOrder(req.params.user_email);
+    let casosOrdenados = ordenarCasos(casos, false);
+    await repository.guardarSolucion(casosOrdenados, req.params.user_email);
+    res.send({ status: true, casos: casosOrdenados })
+  } catch (error) {
+    console.log(error);
+    res.send({ status: false, error });
+  }
+})
+
+app.get('/soluciones/:user_email', async (req, res) => {
+  try {
+    let soluciones = await repository.getSoluciones(req.params.user_email);
+    console.log('mis soluciones',soluciones)
+    res.send({ status: true, soluciones})
+
+  } catch (error) {
+    console.log(error)
+    res.send({ status: false, error});
+  }
+})
+
+app.get('/solucion/:user_email/:solucion_id', async (req, res) => {
+  try {
+    let casos_ids = await repository.getCasosDeSolucion(req.params.solucion_id);
+    let casos = await repository.getCasosPorIds(casos_ids.casos_id);
+    res.send({ status: true, casos })
   } catch (error) {
     console.log(error);
     res.send({ status: false, error });
