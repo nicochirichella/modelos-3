@@ -84,14 +84,15 @@ class Casos extends Component {
             });
     }
 
-    mostrarSolucionActual = () => {
-        let solucion_id = this.state.soluciones[this.state.solucionActual]
+    mostrarSolucionActual = (solucionActual) => {
+        let solucion_id = this.state.soluciones[solucionActual]
         return fetch(`http://localhost:4000/solucion/` + localStorage.getItem('email') + '/' + solucion_id.id)
             .then(res => res.text())
             .then(res => JSON.parse(res).casos)
             .then(res => this.setState({
                 data: res,
-                pantallaCasos: false
+                pantallaCasos: false,
+                solucionActual
             }))
             .catch((error) => {
                 console.log('fail to conect');
@@ -105,10 +106,7 @@ class Casos extends Component {
         } else {
             solucionActual = 0
         }
-        this.setState({
-            solucionActual: solucionActual
-        })
-        this.mostrarSolucionActual()
+        this.mostrarSolucionActual(solucionActual)
     }
 
     showModal = (show) => {
@@ -133,16 +131,16 @@ class Casos extends Component {
                 </Row>
 
                 <Row className="mt-5">
-                    <Column>
-                        <Button className="btn btn-primary" onClick={this.mostrarSolucionActual} >
+                    <Col md={2} className="allign-left">
+                        <Button className="btn btn-primary" onClick={() => this.mostrarSolucionActual(this.state.solucionActual)} >
                             Mis soluciones
                         </Button>
-                    </Column>
-                    <Column>
+                    </Col>
+                    <Col md={2} className="allign-left">
                         <Button className="btn btn-primary" onClick={this.getCasos} >
                             Mis casos
                         </Button>
-                    </Column>
+                    </Col>
                 </Row>
 
                 {this.state.pantallaCasos &&
@@ -156,17 +154,17 @@ class Casos extends Component {
                         </Row>
 
                         <Row>
-                            <Col md={6} xs={4}>
+                            {/* <Col md={2} xs={4}>
                                 <Button className="btn btn-primary" onClick={() => this.showModal(true)} >
                                     <i class="fa fa-plus" aria-hidden="true"></i>
                                 </Button>
-                            </Col>
-                            <Col md={2} xs={12} className='allign-right'>
+                            </Col> */}
+                            <Col md={9} xs={12} className='allign-right'>
                                 <Button className="btn btn-primary" onClick={this.getCasos} >
                                     Todos los casos
                                 </Button>
                             </Col>
-                            <Col md={2} xs={12} className='allign-right'>
+                            <Col md={1} xs={12} className='allign-right'>
                                 <Button className="btn btn-primary" onClick={this.ordenarCasos} >
                                     Ordenar
                                 </Button>
@@ -201,12 +199,13 @@ class Casos extends Component {
                             </Col>
                         </Row>
                         <Row>
-                            <Col md={2} xs={12} className='allign-right'>
+                            <Col md={4} xs={12} className='allign-right'>
                                 <Button className="btn btn-primary" onClick={this.proximaSolucion} >
                                     Proxima solucion
                                 </Button>
                             </Col>
                         </Row>
+                        <br />
                         <Row>
                             <Column>
                                 <HoverStripedTable data={this.state.data} />
