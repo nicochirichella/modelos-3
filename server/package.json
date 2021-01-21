@@ -30,7 +30,7 @@
     "pg": "^4.4.0",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.7",
-    "socket.io": "^2.1.1",
+    "socket.io": "^2.4.0",
     "sqlite3": "^4.0.2",
     "uuid": "^3.3.3"
   },
